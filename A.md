@@ -323,6 +323,56 @@ Rect getItemDecorInsetsForChild(View child) {
 }
 ```
 
+# 事件分发
+
+说到RecyclerView触摸事件的分发,就必须要看看onInterceptTouchEvent()和onTouchEvent()方法.
+其实了解Android事件分发机制的同学应该都清楚,事件分发无非是自身对事件的消耗或者是孩子是事件的消耗,以及都不消耗的情况下事件的回传.
+而RecyclerView的事件分发机制也不例外,无非是是实现了更多自己的逻辑.
+
+在RecyclerView处理自己的逻辑之前,通过OnItemTouchListener类为开发者提供了拦截事件的机会,这对于想实现自己的手势的操作非常有用.
+
+```java
+public static interface OnItemTouchListener {
+    public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e);
+    // 只有onInterceptTouchEvent()返回true,onTouchEvent()才会被调用.
+    public void onTouchEvent(RecyclerView rv, MotionEvent e);
+    public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept);
+}
+```
+
+```java
+ @Override
+public boolean onInterceptTouchEvent(MotionEvent e) {
+    //  冷冻布局
+    if (mLayoutFrozen) {
+        // When layout is frozen,  RV does not intercept the motion event.
+        // A child view e.g. a button may still get the click.
+        return false;
+    }
+    // 为开发者提供拦截事件的机会.
+    if (dispatchOnItemTouchIntercept(e)) {
+        cancelTouch();
+        return true;
+    }
+    // ...
+}
+
+ @Override
+public boolean onTouchEvent(MotionEvent e) {
+    if (mLayoutFrozen || mIgnoreMotionEventTillDown) {
+        return false;
+    }
+    // 为开发者提供拦截事件的机会.
+    if (dispatchOnItemTouch(e)) {
+        cancelTouch();
+        return true;
+    }
+    // ...
+}
+```
+dispatchOnItemTouchIntercept()和dispatchOnItemTouch()方法也比较简单,值得注意的是,由于触摸事件只能由一个listener来消耗,
+所以用mActiveOnItemTouchListener变量来表示当前消耗事件的监听器,如果该监听器消耗了DOWN事件,那么该触摸事件剩下的事件就归该监听器消耗.
+
 # 滑动
 
 # 动画
