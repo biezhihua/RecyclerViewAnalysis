@@ -879,3 +879,7 @@ FLAG_TMP_DETACHED——ViewHolder从父RecyclerView临时分离的标志，便�
 FLAG_ADAPTER_POSITION_UNKNOWN——ViewHolder不知道对应的Adapter的位置，直到绑定到一个新位置  
 FLAG_ADAPTER_FULLUPDATE——方法addChangePayload(null)调用时设置
 
+
+# AdapterHelper
+辅助类，能够队列和处理适配器的更新操作。
+
